@@ -2,7 +2,8 @@ import json
 import aiomqtt
 import asyncio
 import time
-from typing import AsyncGenerator, Optional
+import uuid
+from typing import AsyncGenerator, Optional, Dict, Any
 from raptor_common.config.telemetry_config import TelemetryConfig
 from raptor_common.config.mqtt_config import MQTTConfig
 from raptor_common.database.database_manager import DatabaseManager
@@ -50,6 +51,68 @@ async def _should_attempt_connection() -> bool:
     # Return True if we've waited long enough
     return time_since_last_attempt >= backoff_time
 
+
+async def send_message_and_wait_for_response(
+        mqtt_config,
+        command_topic: str,
+        response_topic: str,
+        message: Dict[str, Any],
+        action_id: str,
+        timeout_seconds: int = 30, logger = None
+) -> Optional[Dict[str, Any]]:
+    """Send MQTT message and wait for response with matching action_id"""
+
+    try:
+        async with aiomqtt.Client(
+                hostname=mqtt_config.broker,
+                port=mqtt_config.port,
+                username=mqtt_config.username,
+                password=mqtt_config.password,
+                keepalive=60,
+                identifier=f"raptor-mqtt-ui-{uuid.uuid4().hex[:8]}"
+        ) as client:
+
+            # Subscribe to response topic first
+            await client.subscribe(response_topic)
+            logger.info(f"Subscribed to response topic: {response_topic}")
+
+            # Send the command message
+            payload = json.dumps(message)
+            await client.publish(command_topic, payload, qos=1)
+            logger.info(f"Published command to topic: {command_topic}")
+            logger.info(f"Payload {payload}")
+
+            # Wait for response with timeout
+            try:
+                async with asyncio.timeout(timeout_seconds):
+                    async for mqtt_message in client.messages:
+                        try:
+                            # Parse the response
+                            print(mqtt_message)
+                            response_data = json.loads(mqtt_message.payload.decode())
+                            print(response_data)
+                            # Check if this response matches our action_id
+                            response_action_id = response_data.get('action_id') or response_data.get('action_id')
+
+                            if response_action_id == action_id:
+                                logger.info(f"Received matching response for action_id: {action_id}")
+                                return response_data
+                            else:
+                                logger.debug(
+                                    f"Received response for different action_id: {response_action_id}, expected: {action_id}")
+
+                        except json.JSONDecodeError as e:
+                            logger.warning(f"Received invalid JSON response: {mqtt_message.payload.decode()}")
+                        except Exception as e:
+                            logger.error(f"Error processing response message: {e}")
+
+            except asyncio.TimeoutError:
+                logger.warning(f"Timeout waiting for response to action_id: {action_id}")
+                return None
+
+    except Exception as e:
+        logger.error(f"Error in send_message_and_wait_for_response: {e}")
+        return None
 
 async def publish_payload(mqtt_config: MQTTConfig, topic: str, payload: JSON, logger: Logger) -> bool:
     """Publish payload to MQTT broker with backoff strategy"""

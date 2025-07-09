@@ -34,7 +34,11 @@ class EnvVars(metaclass=Singleton):
         self.debug = self.get_bool('DEBUG', "False")
         self.log_level = self.get_env('LOG_LEVEL', 'INFO')
         self.enable_simulators = self.get_bool("RAPTOR_SIMULATOR", "False")
-        
+
+        # MQTT configuration
+        self.mqtt_broker = self.get_env('MQTT_BROKER')
+        self.mqtt_port = 1883
+
 
 
     def get_env(self, variable: str, default: Optional[str] = None) -> Optional[str]:
