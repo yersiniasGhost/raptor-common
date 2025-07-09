@@ -38,6 +38,9 @@ class EnvVars(metaclass=Singleton):
         # MQTT configuration
         self.mqtt_broker = self.get_env('MQTT_BROKER')
         self.mqtt_port = 1883
+        self.mqtt_root = None
+        self.mqtt_root_pass = None
+        self.mqtt_client_id = "Valexy MQTT Dashboard"
 
 
 

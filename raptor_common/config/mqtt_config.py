@@ -36,12 +36,12 @@ class MQTTConfig:
         )
 
     @classmethod
-    def get_mqtt_config(cls, username: str, passwd: str, client_id: str, form=FORMAT_FLAT) -> 'MQTTConfig':
+    def get_mqtt_config(cls) -> 'MQTTConfig':
         return cls(
             broker=EnvVars().mqtt_broker,
             port=EnvVars().mqtt_port,
-            username=username,
-            password=passwd,
-            client_id=client_id,
-            format=form
+            username=EnvVars().mqtt_root,
+            password=EnvVars().mqtt_root_pass,
+            client_id=EnvVars().mqtt_client_id,
+            format=FORMAT_FLAT
         )
