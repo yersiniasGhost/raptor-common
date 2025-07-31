@@ -1,1 +1,1 @@
-from mqtt_config import MQTTConfig
+from .mqtt_config import MQTTConfig
