@@ -1,4 +1,4 @@
-from typing import Optional, Union, Dict, Any, Iterable, List
+from typing import Optional, Union, Dict, Any, Iterable, List, Tuple
 from pathlib import Path
 import sqlite3
 from sqlite3 import Connection
