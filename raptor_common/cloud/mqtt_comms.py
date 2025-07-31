@@ -90,7 +90,7 @@ async def send_message_and_wait_for_response(
                             # Parse the response
                             print(mqtt_message)
                             response_data = json.loads(mqtt_message.payload.decode())
-                            print(response_data)
+                            logger.info(response_data)
                             # Check if this response matches our action_id
                             response_action_id = response_data.get('action_id') or response_data.get('action_id')
 
@@ -210,7 +210,7 @@ async def setup_mqtt_listener(mqtt_config: MQTTConfig,
                     clean_session=False
             ) as client:
                 # Subscribe to the messages topic
-                await client.subscribe(telemetry_config.messages_topic)
+                await client.subscribe(telemetry_config.messages_topic, qos=1, retain=True)
 
                 # Log successful connection (with reconnection info if applicable)
                 if connection_failures > 0:

@@ -42,6 +42,7 @@ class EnvVars(metaclass=Singleton):
         self.mqtt_root_pass = None
         self.mqtt_client_id = "Valexy MQTT Dashboard"
 
+        self.deployment = self.get_env("VALEXY_DEPLOYMENT", "STAGE")
 
 
     def get_env(self, variable: str, default: Optional[str] = None) -> Optional[str]:
